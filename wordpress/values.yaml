@@ -1,0 +1,324 @@
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+##
+# global:
+#   imageRegistry: myRegistryName
+#   imagePullSecrets:
+#     - myRegistryKeySecretName
+#   storageClass: myStorageClass
+
+## Bitnami node image version
+## ref: https://hub.docker.com/r/bitnami/node/tags/
+##
+image:
+  registry: docker.io
+  repository: bitnami/wordpress
+  tag: 5.4.2
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent 
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  pullSecrets:
+  #   - myRegistryKeySecretName
+
+## String to partially override node.fullname template (will maintain the release name)
+##
+# nameOverride:
+#
+
+## String to fully override node.fullname template
+##
+# fullnameOverride:
+#
+#Cluster: DigitalOcean #GKE if deploying in google clouster
+
+org: ""
+secretname: app-env-secret
+
+env: zerone
+namespace: node
+fqdn: node.test.01cloud.dev
+zone: do.test.01cloud.dev. 
+zone_name: test-01cloud-dev 
+tls: zerone-tls-cert
+
+clients_fqdn: ""
+clients_fqdn_secondary: ""
+
+LoadBalancer:
+  disabled: true
+
+contour:
+  ingress:
+    class: zerone
+
+
+HealthCheck:
+  path: /healthy
+  intervalSeconds: 5
+  timeoutSeconds: 2
+  unhealthyThresholdCount: 3
+  healthyThresholdCount: 5
+
+TimeOutPolicy:
+  request: 1s
+
+RetryPolicy:
+  count: 3
+  perTryTimeout: 150ms
+
+service:
+  type: ClusterIP
+  port: 80
+  TargetPort: 8080
+
+dynamicEnv:
+  normal: #nonsensitive env variables in normal section
+  # port: 8080
+
+  secret: {} #sensitive env variables in secret section
+  # db_user: "demo"
+  # db_pass: "demo"
+
+
+nodePool:
+  deployment: np-starter
+
+HealthCheck:
+  path: /healthy
+  intervalSeconds: 5
+  timeoutSeconds: 2
+  unhealthyThresholdCount: 3
+  healthyThresholdCount: 5
+
+TimeOutPolicy:
+  request: 1s
+
+RetryPolicy:
+  count: 3
+  perTryTimeout: 150ms
+
+
+autoscaling:
+  enabled: false
+  cpu: true
+  memory: true
+  
+  targetCPUUtilizationPercentage: "" #80
+  targetMemoryUtilizationPercentage: "" #80
+
+  AdvancedSetting: 
+    enabled: false
+    scaleup:
+      stabilizationWindowSeconds: 0
+      policies:
+        type: Percent
+        value: 10
+        periodSeconds: 15
+    scaledown:
+      stabilizationWindowSeconds: 0
+      policies:
+        type: Percent
+        value: 10
+        periodSeconds: 15
+
+
+##
+getAppFromExternalRepository: true
+
+## Git repository http/https
+##
+repository: https://github.com/bitnami/sample-mean.git
+## Git repository revision to checkout
+##
+revision: master
+
+## Specify the number of replicas for the application
+##
+replicaCount: 1
+
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+affinity: 
+  enabled: false
+  requiredDuringSchedulingIgnoredDuringExecution:
+    key: keyname
+    operator: In
+    values: value
+  preferredDuringSchedulingIgnoredDuringExecution:
+    weight: 1
+    key: keyname
+    operator: In
+    values: value
+
+## Tolerations for pod assignment. Evaluated as a template.
+## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: 
+  enabled: false
+  key: keyname
+  value: value
+  operator: equal
+  effect: NoSchedule
+
+## Pod Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+securityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+
+## Node conatiners' resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  enabled: false
+  path: /app/data
+  ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+  ## Default: volume.alpha.kubernetes.io/storage-class: default
+  ##
+  storageClass: default
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+global:
+  org: ""
+mariadb:
+  ## Whether to deploy a mariadb server to satisfy the applications database requirements. To use an external database set this to false and configure the externalDatabase parameters
+  ##
+  enabled: true
+  image:
+    repository: bitnami/mariadb
+    tag: "10.3.23-debian-10-r44"
+  ## Disable MariaDB replication
+  ##
+  replication:
+    enabled: false
+
+  ## Create a database and a database user
+  ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
+  ##
+  db:
+    name: wordpress
+    user: wordpress
+    ## If the password is not specified, mariadb will generates a random password
+    ##
+    # password:
+
+  ## MariaDB admin password
+  ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#setting-the-root-password-on-first-run
+  ##
+  # rootUser:
+  #   password:
+
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+  ##
+  master:
+    persistence:
+      enabled: true
+      ## mariadb data Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      # storageClass: "-"
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+
+##
+## External Database Configuration
+##
+## All of these values are only used when mariadb.enabled is set to false
+##
+externalDatabase:
+  ## Database host
+  ##
+  host: localhost
+
+  ## non-root Username for Wordpress Database
+  ##
+  user: wordpress
+
+  ## Database password
+  ##
+  password: ""
+
+  ## Database name
+  ##
+  database: wordpress
+
+  ## Database port number
+  ##
+  port: 3306
+
+
+wordpressUsername: wp_user
+
+## Application password
+## Defaults to a random 10-character alphanumeric string if not set
+## ref: https://github.com/bitnami/bitnami-docker-wordpress#environment-variables
+##
+wordpressPassword: wordpress
+
+## Admin email
+## ref: https://github.com/bitnami/bitnami-docker-wordpress#environment-variables
+##
+wordpressEmail: user@example.com
+
+
+## Blog name
+## ref: https://github.com/bitnami/bitnami-docker-wordpress#environment-variables
+##
+wordpressBlogName: blog #this must be single string
+
+## Table prefix
+## ref: https://github.com/bitnami/bitnami-docker-wordpress#environment-variables
+##
+wordpressTablePrefix: wp_
+
+
+#wordpressUrl: "" #shreeram.test.01cloud.dev #example.com
+
+wordpressDebugLogEnable: false # eiter true or false
+
+#READINESS AND LIVELESS PROBES
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 160
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 40
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1

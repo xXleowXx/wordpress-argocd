@@ -1,0 +1,49 @@
+{{- if and (ne .Values.clients_fqdn "") ( .Values.LoadBalancer.disabled ) }}
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: {{ template "wordpress.fullname" . }}-custom-domain-root-ingress
+  namespace: custom-domain-ingressroutes
+  annotations:
+    cert-manager.io/cluster-issuer:  {{ .Values.namespace}}-issuer
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: zerone
+    kubernetes.io/tls-acme: "true"
+spec:
+  virtualhost:
+    fqdn: {{ .Values.clients_fqdn }}
+    tls:
+      secretName: {{ .Values.namespace}}-tls-cert
+  includes:
+  - name: {{ template "wordpress.fullname" . }}-ingress
+    namespace: {{ .Values.namespace }}
+    conditions:
+    - prefix: /
+
+{{- end }}    
+
+---
+
+{{- if and (ne .Values.clients_fqdn_secondary "") ( .Values.LoadBalancer.disabled ) }}
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: {{ template "wordpress.fullname" . }}-custom-domain-root-ingress-sec
+  namespace: custom-domain-ingressroutes
+  annotations:
+    cert-manager.io/cluster-issuer:  {{ .Values.namespace}}-issuer
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: zerone
+    kubernetes.io/tls-acme: "true"
+spec:
+  virtualhost:
+    fqdn: {{ .Values.clients_fqdn_secondary }}
+    tls:
+      secretName: {{ .Values.namespace}}-tls-cert-sec
+  includes:
+  - name: {{ template "wordpress.fullname" . }}-ingress
+    namespace: {{ .Values.namespace }}
+    conditions:
+    - prefix: /
+
+{{- end }}

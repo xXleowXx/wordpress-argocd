@@ -1,0 +1,30 @@
+{{- if and (ne .Values.clients_fqdn "") ( .Values.LoadBalancer.disabled ) }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.namespace }}-certificate
+  namespace: custom-domain-ingressroutes
+spec:
+  secretName: {{ .Values.namespace }}-tls-cert
+  issuerRef:
+    name: custom-domain-issuer
+  commonName: {{ .Values.clients_fqdn }}
+  dnsNames:
+  - {{ .Values.clients_fqdn }}
+{{- end }}
+---
+
+{{- if and (ne .Values.clients_fqdn_secondary "") ( .Values.LoadBalancer.disabled ) }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.namespace }}-certificate-sec
+  namespace: custom-domain-ingressroutes
+spec:
+  secretName: {{ .Values.namespace }}-tls-cert-sec
+  issuerRef:
+    name: custom-domain-issuer
+  commonName: {{ .Values.clients_fqdn_secondary }}
+  dnsNames:
+  - {{ .Values.clients_fqdn_secondary }}
+{{- end }} 

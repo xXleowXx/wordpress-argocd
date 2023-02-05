@@ -1,0 +1,13 @@
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: {{ template "wordpress.fullname" . }}-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.contour.ingress.class }}
+spec:
+  routes:
+    - services:
+        - name: {{ template "wordpress.fullname" . }}
+          port: {{ .Values.service.port }}
+    

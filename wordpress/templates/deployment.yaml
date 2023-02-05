@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wordpress.fullname" . }}
+  labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "wordpress.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        timestamp: {{ date "20060102150405" now | quote }}
+        date: {{ now | htmlDate  }}
+      labels:
+        {{- include "wordpress.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+              #fsGroup: 1000
+        fsGroup: 82
+      volumes:
+      - name: {{ template "wordpress.fullname" . }}-binding
+        persistentVolumeClaim:
+          claimName: {{ template "wordpress.fullname" . }}-binding
+      initContainers:
+        - name: init-mysql
+          image: busybox
+          resources:
+            limits:
+              cpu: 20m
+              memory: 25Mi
+            requests:
+              cpu: 10m
+              memory: 12Mi
+
+          command:
+            - '/bin/sh'
+            - '-c'
+            - |
+                while true
+                do
+                  rt=$(nc -zv -w 1 {{ include "wordpress.databaseHost" . }}  3306)
+                  if [ $? -eq 0 ]; then
+                    echo "DB is UP"
+                    break
+                  fi
+                 echo "DB is not yet reachable;sleep for 2s before retry"
+                 sleep 2
+                done
+
+      {{- if .Values.tolerations.enabled }}
+      tolerations:
+       - key: "{{ .Values.tolerations.key }}"
+         operator: "{{ .Values.tolerations.operator }}"
+         value: "{{ .Values.tolerations.value }}"
+         effect: "{{ .Values.tolerations.effect }}"
+      {{- end }}
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/instance 
+                  operator: In
+                  values:
+                    - {{ .Release.Name }}
+
+      {{- if .Values.affinity.enabled }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+             - matchExpressions:
+               - key: {{ .Values.affinity.requiredDuringSchedulingIgnoredDuringExecution.key }}
+                 operator: {{ .Values.affinity.requiredDuringSchedulingIgnoredDuringExecution.operator }}
+                 values:
+                 - {{ .Values.affinity.requiredDuringSchedulingIgnoredDuringExecution.values }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.weight }}
+            preference:
+              matchExpressions:
+              - key: {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.key }}
+                operator: {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.operator }}
+                values:
+                 - {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.values }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - "bash"
+                  - "-c"
+                  - | 
+                    ./postscript.sh
+                    if [ -f "/var/www/html/wordpress/wp-content/plugins/.test" ]; then
+                      echo "already created"
+                      break
+                    else
+                      echo "creating directory"
+                      mkdir /var/www/html/wordpress/wp-content/plugins
+                      touch /var/www/html/wordpress/wp-content/plugins/.test
+                    fi
+                    echo "done"
+
+          env:
+            - name: DB_HOST
+              value: {{ include "wordpress.databaseHost" . | quote }}
+            - name: DB_PORT
+              value: {{ include "wordpress.databasePort" . | quote }}
+            - name: DB_DATABASE
+              value: {{ include "wordpress.databaseName" . | quote }}
+            - name: DB_USERNAME
+              value: {{ include "wordpress.databaseUser" . | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.databaseSecretName" . }}
+                  key: mariadb-password
+            - name: WORDPRESS_USERNAME
+              value: {{ .Values.wordpressUsername | quote }}
+            - name: WORDPRESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.fullname" . }}
+                  key: wordpress-password
+            - name: WORDPRESS_EMAIL
+              value: {{ .Values.wordpressEmail | quote }}
+            - name: WORDPRESS_BLOG_NAME
+              value: {{ .Values.wordpressBlogName | quote }}
+            - name: WORDPRESS_TABLE_PREFIX
+              value: {{ .Values.wordpressTablePrefix | quote }}
+            - name: WORDPRESS_SCHEME
+              value: {{ .Values.wordpressScheme | quote }}
+              #- name: WORDPRESS_URL
+              #value: {{ .Values.wordpressUrl | quote }}
+            - name: WP_DEBUG
+              value: {{ .Values.wordpressDebugLogEnable | quote }}
+          {{- include "helpers.list-env-variables" . | indent 12 }}
+          ports:
+          - containerPort: {{ .Values.service.TargetPort }}
+            name: http
+          volumeMounts:
+          - name: {{ template "wordpress.fullname" . }}-binding
+            mountPath: /var/www/html/wordpress/wp-content
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            tcpSocket:
+              port: http
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            tcpSocket:
+              port: http
+          {{- end }}
