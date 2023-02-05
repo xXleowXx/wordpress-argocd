@@ -7,7 +7,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/aadi308/argocd-example.git
+    repoURL: https://github.com/aadi308/wordpress-argocd.git
     path: wordpress
   destination: 
     server: https://kubernetes.default.svc
