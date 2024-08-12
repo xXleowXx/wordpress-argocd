@@ -124,6 +124,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "wordpress.databaseSecretName" . }}
                   key: mariadb-password
+            - name: WORDPRESS_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.databaseSecretName" . }}
+                  key: mariadb-password
             - name: WORDPRESS_USERNAME
               value: {{ .Values.wordpressUsername | quote }}
             - name: WORDPRESS_PASSWORD
