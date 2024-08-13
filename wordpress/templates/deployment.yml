@@ -75,3 +75,10 @@ spec:
               value: zwNH64x7K0lpvwxHl8vO
             - name: WORDPRESS_DATABASE_HOST
               value: 172.16.110.235
+          ports:
+          - containerPort: 8080
+            name: http
+          volumeMounts:
+          - name: {{ template "wordpress.fullname" . }}-binding
+            mountPath: /var/www/html/wordpress/wp-content
+          resources: {{- toYaml .Values.resources | nindent 12 }}
