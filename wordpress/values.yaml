@@ -54,10 +54,6 @@ clients_fqdn_secondary: ""
 LoadBalancer:
   disabled: true
 
-contour:
-  ingress:
-    class: zerone
-
 
 HealthCheck:
   path: /healthy
@@ -171,9 +167,9 @@ tolerations:
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 ##
 securityContext:
-  enabled: true
-  fsGroup: 1001
-  runAsUser: 1001
+  enabled: false
+  fsGroup: 1003
+  runAsUser: 1004
 
 ## Node conatiners' resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -305,7 +301,7 @@ wordpressTablePrefix: wp_
 
 #wordpressUrl: "" #shreeram.test.01cloud.dev #example.com
 
-wordpressDebugLogEnable: false # eiter true or false
+wordpressDebugLogEnable: true # eiter true or false
 
 #READINESS AND LIVELESS PROBES
 livenessProbe:
