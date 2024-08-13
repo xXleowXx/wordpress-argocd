@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        timestamp: {{ date "20060102150405" now | quote }}
+        date: {{ now | htmlDate  }}
+    spec:
+      securityContext:
+              #fsGroup: 1000
+        fsGroup: 82
+      volumes:
+      - name: wordpress-binding
+        persistentVolumeClaim:
+          claimName: wordpress-binding
+      initContainers:
+        - name: init-mysql
+          image: busybox
+          resources:
+            limits:
+              cpu: 20m
+              memory: 25Mi
+            requests:
+              cpu: 10m
+              memory: 12Mi
+          command:
+            - '/bin/sh'
+            - '-c'
+            - |
+                while true
+                do
+                  rt=$(nc -zv -w 1 {{ include "wordpress.databaseHost" . }}  3306)
+                  if [ $? -eq 0 ]; then
+                    echo "DB is UP"
+                    break
+                  fi
+                 echo "DB is not yet reachable;sleep for 2s before retry"
+                 sleep 2
+                done
