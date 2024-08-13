@@ -50,44 +50,6 @@ spec:
                  sleep 2
                 done
 
-      {{- if .Values.tolerations.enabled }}
-      tolerations:
-       - key: "{{ .Values.tolerations.key }}"
-         operator: "{{ .Values.tolerations.operator }}"
-         value: "{{ .Values.tolerations.value }}"
-         effect: "{{ .Values.tolerations.effect }}"
-      {{- end }}
-      affinity:
-        podAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchExpressions:
-                - key: app.kubernetes.io/instance 
-                  operator: In
-                  values:
-                    - {{ .Release.Name }}
-
-      {{- if .Values.affinity.enabled }}
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-             - matchExpressions:
-               - key: {{ .Values.affinity.requiredDuringSchedulingIgnoredDuringExecution.key }}
-                 operator: {{ .Values.affinity.requiredDuringSchedulingIgnoredDuringExecution.operator }}
-                 values:
-                 - {{ .Values.affinity.requiredDuringSchedulingIgnoredDuringExecution.values }}
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.weight }}
-            preference:
-              matchExpressions:
-              - key: {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.key }}
-                operator: {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.operator }}
-                values:
-                 - {{ .Values.affinity.preferredDuringSchedulingIgnoredDuringExecution.values }}
-      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
