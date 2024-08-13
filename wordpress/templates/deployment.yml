@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wordpress
+    labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
 spec:
   replicas: 1
   template:
@@ -9,6 +11,9 @@ spec:
       annotations:
         timestamp: {{ date "20060102150405" now | quote }}
         date: {{ now | htmlDate  }}
+  selector:
+    matchLabels:
+      {{- include "wordpress.selectorLabels" . | nindent 6 }}
     spec:
       securityContext:
               #fsGroup: 1000
