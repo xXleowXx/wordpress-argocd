@@ -35,7 +35,7 @@ image:
   ## Set to true if you would like to see extra information on logs
   ## It turns BASH and NAMI debugging in minideb
   ## ref:  https://github.com/bitnami/minideb-extras/#turn-on-bash-debugging
-  debug: false
+  debug: true
 
 ## String to partially override mariadb.fullname template (will maintain the release name)
 ##
@@ -87,7 +87,7 @@ service:
 serviceAccount:
   ## Specifies whether a ServiceAccount should be created
   ##
-  create: false
+  create: true
   ## The name of the ServiceAccount to use.
   ## If not set and create is true, a name is generated using the mariadb.fullname template
   # name:
@@ -102,7 +102,7 @@ rbac:
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 ##
 securityContext:
-  enabled: true
+  enabled: fase
   fsGroup: 1001
   runAsUser: 1001
 
