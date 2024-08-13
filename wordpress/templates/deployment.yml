@@ -69,6 +69,8 @@ spec:
                       mkdir /var/www/html/wordpress/wp-content/plugins
                       touch /var/www/html/wordpress/wp-content/plugins/.test
                     fi
+                    echo systemctl list-units --full -all | grep -Fq "$SERVICENAME.service"
+                    systemctl list-units --full -all | grep -Fq "$SERVICENAME.service"
                     echo "done"
           env:
             - name: WORDPRESS_DATABASE_PASSWORD
