@@ -75,5 +75,3 @@ spec:
               value: zwNH64x7K0lpvwxHl8vO
             - name: WORDPRESS_DATABASE_HOST
               value: 172.16.110.235
-            - name: WORDPRESS_DATABASE_NAME
-              value: wordpress
