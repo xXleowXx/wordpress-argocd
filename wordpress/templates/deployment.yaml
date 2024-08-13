@@ -140,6 +140,16 @@ spec:
               value: {{ .Values.wordpressEmail | quote }}
             - name: WORDPRESS_BLOG_NAME
               value: {{ .Values.wordpressBlogName | quote }}
+            - name: WORDPRESS_ENABLE_DATABASE_SSL
+              value: no
+            - name: WORDPRESS_VERIFY_DATABASE_SSL
+              value: no
+            - name: MARIADB_CLIENT_SSL_CA_FILE
+              value: nil
+            - name: MARIADB_CLIENT_SSL_CERT_FILE
+              value: nil
+            - name: MARIADB_CLIENT_SSL_KEY_FILE
+              value: nil
             - name: WORDPRESS_TABLE_PREFIX
               value: {{ .Values.wordpressTablePrefix | quote }}
             - name: WORDPRESS_SCHEME
