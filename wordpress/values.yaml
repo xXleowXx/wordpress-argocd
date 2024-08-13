@@ -53,7 +53,9 @@ clients_fqdn_secondary: ""
 
 LoadBalancer:
   disabled: true
-
+contour:
+  ingress:
+    class: zerone
 
 HealthCheck:
   path: /healthy
